@@ -1,0 +1,18 @@
+@startuml C1_Context_AsIs
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Диаграмма контекста (C1) для системы "Тёплый дом" (As-Is)
+
+Person(user, "Пользователь", "Жилец дома")
+Person(installer, "Специалист по подключению", "Сотрудник компании 'Тёплый дом'")
+
+System(warm_house, "Система 'Тёплый дом'", "Монолитное веб-приложение на Go, управляющее отоплением.")
+System_Ext(iot_device, "Умное устройство", "Контроллер отопления и датчик температуры в доме пользователя.")
+
+Rel(user, warm_house, "Управляет отоплением и просматривает температуру", "HTTPS/Веб-интерфейс")
+Rel(installer, warm_house, "Подключает и настраивает новые устройства")
+
+Rel(warm_house, iot_device, "Отправляет команды управления", "Проприетарный протокол по TCP/IP")
+Rel(iot_device, warm_house, "Предоставляет данные о температуре по запросу")
+
+@enduml
