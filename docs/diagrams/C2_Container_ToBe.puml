@@ -58,8 +58,11 @@ Rel(telemetry_service, telemetry_db, "Сохраняет данные", "JDBC")
 
 ' Сценарий: Срабатывание автоматизации (асинхронный)
 Rel(kafka, automation_service, "Слушает события 'DeviceStateChanged'")
-Rel(automation_service, automation_db, "Читает сценарии", "JDBC")
+Rel(automation_service, automation_db, "Читает и записывает сценарии", "JDBC")
 Rel(automation_service, kafka, "Публикует команду 'ExecuteDeviceCommand'")
 Rel(kafka, control_service, "Слушает команды 'ExecuteDeviceCommand'")
+
+' Сценарий: Пользователь редактирует сценарии автомаризации (синхронный)
+Rel(gateway, automation_service, "Управляет сценариями", "REST API")
 
 @enduml
