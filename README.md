@@ -91,7 +91,9 @@
 
 **Диаграмма контейнеров (Containers)**
 
-Добавьте диаграмму.
+![Диаграмма контейнеров To-Be](docs/diagrams/C2_Container_ToBe.png)
+
+[Исходный код диаграммы в формате PlantUML](docs/diagrams/C2_Container_ToBe.puml)
 
 **Диаграмма компонентов (Components)**
 

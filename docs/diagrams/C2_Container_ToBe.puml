@@ -1,0 +1,65 @@
+@startuml C2_Context_ToBe
+title Диаграмма контейнеров (C2) для системы "Тёплый дом" (To-Be)
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+' --- АКТОРЫ И ВНЕШНИЕ СИСТЕМЫ ---
+
+Person(user, "Пользователь", "Жилец дома, управляющий системой")
+System_Ext(device, "Умное устройство", "Датчики и исполнительные устройства в доме")
+' добавим просто для полноты картины
+System_Ext(payment_gateway, "Платежный шлюз", "Внешняя система для обработки платежей")
+' добавим просто для полноты картины
+System_Ext(email_service, "Email сервис", "Внешняя система для отправки уведомлений")
+
+' --- ГРАНИЦА НАШЕЙ СИСТЕМЫ ---
+System_Boundary(warm_house, "Система 'Тёплый дом'") {
+    ' --- КЛИЕНТСКИЕ ПРИЛОЖЕНИЯ ---
+    Container(client_apps, "Клиентские приложения", "Веб (SPA/HTMX), Мобильные (iOS/Android)", "Предоставляют UI для взаимодействия с системой")
+
+    ' --- ТОЧКА ВХОДА ---
+    Container(gateway, "API Gateway", "Spring Cloud Gateway", "Единая точка входа, маршрутизация, безопасность")
+    ' --- БАЗА ДАННЫХ И БРОКЕР ---
+    ContainerDb(registry_db, "Registry DB", "PostgreSQL", "Хранит информацию о пользователях, домах и устройствах")
+    ContainerDb(telemetry_db, "Telemetry DB", "TimescaleDB", "Хранит временные ряды показаний датчиков")
+    ContainerDb(automation_db, "Automation DB", "PostgreSQL", "Хранит пользовательские сценарии автоматизации")
+    ContainerQueue(kafka, "Брокер событий", "Apache Kafka", "Асинхронное взаимодействие между сервисами")
+
+    ' --- МИКРОСЕРВИСЫ ---
+    Container(registry_service, "Сервис Реестра", "Java/Spring", "Управляет пользователями, домами и жизненным циклом устройств")
+    Container(telemetry_service, "Сервис Телеметрии", "Go / Kotlin", "Принимает, обрабатывает и сохраняет данные с датчиков")
+    Container(control_service, "Сервис Управления", "Java/Spring", "Отправляет прямые команды на устройства")
+    Container(automation_service, "Сервис Автоматизации", "Java/Spring", "Выполняет сценарии 'Если ... то ...'")
+}
+
+
+' --- СВЯЗИ (ПО СЦЕНАРИЯМ) ---
+
+' Сценарий: Пользователь управляет системой
+Rel(user, client_apps, "Использует")
+Rel(client_apps, gateway, "Отправляет запросы", "HTTPS/JSON")
+
+' Сценарий: Регистрация устройства (синхронный)
+Rel(gateway, registry_service, "Регистрация устройств, управление пользователями")
+Rel(registry_service, registry_db, "CRUD операции", "JDBC")
+
+' Сценарий: Ручное управление (синхронный)
+Rel(gateway, control_service, "Отправка команд вручную", "REST API")
+Rel(control_service, registry_db, "Читает инфо об устройстве", "JDBC") 
+Rel(control_service, device, "Отправляет команду на устройство", "MQTT/HTTP")
+
+' Сценарий: Поступление телеметрии (асинхронный)
+Rel(device, gateway, "Отправляет данные телеметрии", "MQTT/HTTP")
+Rel(gateway, telemetry_service, "Прием данных")
+Rel(telemetry_service, kafka, "Публикует событие 'DeviceStateChanged'")
+Rel(telemetry_service, telemetry_db, "Сохраняет данные", "JDBC")
+
+' Сценарий: Срабатывание автоматизации (асинхронный)
+Rel(kafka, automation_service, "Слушает события 'DeviceStateChanged'")
+Rel(automation_service, automation_db, "Читает сценарии", "JDBC")
+Rel(automation_service, kafka, "Публикует команду 'ExecuteDeviceCommand'")
+Rel(kafka, control_service, "Слушает команды 'ExecuteDeviceCommand'")
+
+@enduml
