@@ -97,7 +97,9 @@
 
 **Диаграмма компонентов (Components)**
 
-Добавьте диаграмму для каждого из выделенных микросервисов.
+![Диаграмма компонентов To-Be](docs/diagrams/C3_Component_ToBe.png)
+
+[Исходный код диаграммы в формате PlantUML](docs/diagrams/C3_Component_ToBe.puml)
 
 **Диаграмма кода (Code)**
 

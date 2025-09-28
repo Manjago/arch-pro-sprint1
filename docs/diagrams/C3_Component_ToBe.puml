@@ -1,0 +1,39 @@
+@startuml C3_Component_AutomationService
+title Компоненты (C3) для "Сервиса Автоматизации"
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+' ВНЕШНИЙ МИР (другие контейнеры) ---
+Container(gateway, "API Gateway", "Spring Cloud Gateway", "Единая точка входа, маршрутизация, безопасность")
+ContainerDb(automation_db, "Automation DB", "PostgreSQL", "Хранит пользовательские сценарии автоматизации")
+ContainerQueue(kafka, "Брокер событий", "Apache Kafka", "Асинхронное взаимодействие между сервисами")
+
+' СЕРВИС
+Container_Boundary(automation_service, "Сервис Автоматизации") {
+
+    ' КОМПОНЕНТЫ ВНУТРИ СЕРВИСА
+    Component(api, "Scenario API", "Spring REST Controller", "Предоставляет CRUD API для управления сценариями")
+    Component(consumer, "Event Consumer", "Kafka Consumer", "Слушает события изменения состояния устройств")
+    Component(engine, "Rules Engine", "Core Domain", "Ядро бизнес-логики: проверяет условия и генерирует команды")
+    Component(repository, "Scenario Repository", "Spring Data JPA", "Обеспечивает доступ к базе данных сценариев")
+    Component(producer, "Command Producer", "Kafka Producer", "Публикует команды для исполнительных устройств")
+
+}
+
+' СВЯЗИ
+
+' ВНЕШНИЕ СВЯЗИ
+Rel(gateway, api, "Управляет сценариями", "HTTPS/JSON")
+Rel(kafka, consumer, "Доставляет события 'DeviceStateChanged'")
+Rel(repository, automation_db, "Читает и записывает сценарии", "JDBC")
+Rel(producer, kafka, "Публикует команды 'ExecuteDeviceCommand'")
+
+' ВНУТРЕННИЕ СВЯЗИ
+Rel(api, repository, "Использует для сохранения/чтения сценариев")
+Rel(consumer, engine, "Передает события на обработку")
+Rel(engine, repository, "Запрашивает подходящие сценарии")
+Rel(engine, producer, "Отправляет сгенерированные команды на публикацию")
+
+@enduml
