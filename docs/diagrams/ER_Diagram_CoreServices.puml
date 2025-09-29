@@ -62,6 +62,21 @@ entity "DeviceTypes" {
   DeviceTypes ||--o{ Devices
 }
 
+package "Automation Service" {
+
+entity "Scenarios" {
+' Идентификатор сценария    
+  * id: UUID <<PK>>
+' Идентификатор пользователя, синхронизируется с Users Service
+  * user_id: UUID
+' Человекочитаемое наименование сценария
+  * name: varchar
+' Сценарий активен или приостановлен (enum более расширяемо, чем просто ищщдуфт)
+  * status: ' (enabled, disabled)
+}
+
+}
+
 
 
 @enduml
