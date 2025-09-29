@@ -9,6 +9,7 @@ top to bottom direction
 Container(gateway, "API Gateway", "Spring Cloud Gateway", "Единая точка входа, маршрутизация, безопасность")
 ContainerDb(automation_db, "Automation DB", "PostgreSQL", "Хранит пользовательские сценарии автоматизации")
 ContainerQueue(kafka, "Брокер событий", "Apache Kafka", "Асинхронное взаимодействие между сервисами")
+Container(registry_service, "Сервис Реестра", "REST API", "Предоставляет метаданные об устройствах")
 
 ' СЕРВИС
 Container_Boundary(automation_service, "Сервис Автоматизации") {
@@ -29,6 +30,7 @@ Rel(gateway, api, "Управляет сценариями", "HTTPS/JSON")
 Rel(kafka, consumer, "Доставляет события 'DeviceStateChanged'")
 Rel(repository, automation_db, "Читает и записывает сценарии", "JDBC")
 Rel(producer, kafka, "Публикует команды 'ExecuteDeviceCommand'")
+Rel(engine, registry_service, "Получаем метаданные - тип устройства, его комнату и т.д.")
 
 ' ВНУТРЕННИЕ СВЯЗИ
 Rel(api, repository, "Использует для сохранения/чтения сценариев")
