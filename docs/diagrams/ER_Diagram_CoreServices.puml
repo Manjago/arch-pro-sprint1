@@ -1,0 +1,67 @@
+@startuml ER_Diagram_CoreServices
+
+title ER-диаграмма для ключевых сервисов
+
+package "Registry Service" {
+
+entity "Users" {
+  ' Уникальный идентификатор, синхронизируется с Users Service
+  * id: UUID <<PK>>
+  --
+  ' Отображаемое имя, используется в интерфейсах поддержки
+  * display_name: varchar
+}
+
+entity "Houses" {
+  ' Уникальный идентификатор дома
+  * id: UUID <<PK>>
+  --
+  ' Отображаемое имя (например, "Дача")
+  * display_name: varchar
+  ' Внешний ключ на владельца дома
+  # user_id: UUID <<FK>>
+}
+
+entity "Devices" {
+  ' Уникальный идентификатор устройства
+    * id: UUID <<PK>>
+    --
+  ' Отображаемое имя (например, "Нагреватель в спальне")
+    * display_name: varchar
+  ' Серийный номер производителя
+    * serial_number: varchar
+  ' Вендор (по хорошему справочник, но упростим)
+    * vendor: varchar
+  ' Статус (включен, выключен, поломался)
+    * status: varchar ' (online, offline, error)
+  ' Дополнительные свойства
+    properties: jsonb
+  ' Уроверь батареи, в процентах
+    battery_level: integer
+  ' Внешний ключ на дом
+    # house_id: UUID <<FK>>
+  ' Внешний ключ на тип устройства
+    # device_type_id: integer <<FK>>
+  }
+
+entity "DeviceTypes" {
+  ' Уникальный идентификатор типа устройства
+    * id: integer <<PK>>
+    --
+  ' Имя 
+    * name: varchar ' ("Датчик температуры", "Умная розетка")
+    description: text
+  }
+
+
+' У одного пользователя может быть 0 или больше домов
+  Users ||--o{ Houses
+' В доме может не быть устройств (ил ибыть много)
+  Houses ||--o{ Devices
+' Мы можем знать об тип устройств, но их пока нет
+  DeviceTypes ||--o{ Devices
+}
+
+
+
+@enduml
