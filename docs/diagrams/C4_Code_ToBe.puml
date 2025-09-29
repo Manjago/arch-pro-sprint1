@@ -66,5 +66,4 @@ class ScenarioEvaluator {
 ' Evaluator использует модели для своей работы
 ScenarioEvaluator ..> Scenario
 
-
 @enduml
