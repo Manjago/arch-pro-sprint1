@@ -4,6 +4,7 @@ title ER-диаграмма для ключевых сервисов
 
 package "Registry Service" {
 
+' Пользователи
 entity "Users" {
   ' Уникальный идентификатор, синхронизируется с Users Service
   * id: UUID <<PK>>
@@ -12,6 +13,7 @@ entity "Users" {
   * display_name: varchar
 }
 
+' Дома
 entity "Houses" {
   ' Уникальный идентификатор дома
   * id: UUID <<PK>>
@@ -22,6 +24,7 @@ entity "Houses" {
   # user_id: UUID <<FK>>
 }
 
+' Устройства
 entity "Devices" {
   ' Уникальный идентификатор устройства
     * id: UUID <<PK>>
@@ -44,6 +47,7 @@ entity "Devices" {
     # device_type_id: integer <<FK>>
   }
 
+' Типы устройств
 entity "DeviceTypes" {
   ' Уникальный идентификатор типа устройства
     * id: integer <<PK>>
@@ -58,15 +62,17 @@ entity "DeviceTypes" {
   Users ||--o{ Houses
 ' В доме может не быть устройств (ил ибыть много)
   Houses ||--o{ Devices
-' Мы можем знать об тип устройств, но их пока нет
+' Мы можем знать о типе устройств, но их пока нет
   DeviceTypes ||--o{ Devices
 }
 
 package "Automation Service" {
 
+' Сценарии
 entity "Scenarios" {
 ' Идентификатор сценария    
   * id: UUID <<PK>>
+    --
 ' Идентификатор пользователя, синхронизируется с Users Service
   * user_id: UUID
 ' Человекочитаемое наименование сценария
@@ -74,6 +80,35 @@ entity "Scenarios" {
 ' Сценарий активен или приостановлен (enum более расширяемо, чем просто ищщдуфт)
   * status: ' (enabled, disabled)
 }
+
+' Атрибуты устройств (температура, влажность)
+entity "DeviceAttributes" {
+  ' Уникальный идентификатор атрибута
+    * id: integer <<PK>>
+    --
+  ' Имя 
+    * name: varchar ' ("Температура", "Влажность")
+    description: text
+  }
+
+
+' Триггеры (на что реагируем)
+entity "Triggers" {
+' Идентификатор триггера
+  * id: UUID <<PK>>
+  --
+' На какое устройство реагируем (не внешний ключ, таблицы устройств тут не будет, будет ходить за метаданными чере API)    
+  * source_device_id: UUID 
+' На какое его свойство? Например, "Температура"  
+  # device_attribute_id: integer <<FK>>
+' Триггер связан со сценарием
+  # scenario_id: UUID <<FK>>
+}
+
+  ' Один атрибут может использоваться во многих триггерах
+  DeviceAttributes ||--o{ Triggers
+' У одного сценария может быть один или несколько триггеров
+  Scenarios ||--o{ Triggers
 
 }
 
