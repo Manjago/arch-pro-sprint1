@@ -2,6 +2,7 @@
 
 title ER-диаграмма для ключевых сервисов
 
+' PostgreSQL
 package "Registry Service" {
 
 ' Пользователи
@@ -67,6 +68,7 @@ entity "DeviceTypes" {
   DeviceTypes ||--o{ Devices
 }
 
+' PostgreSQL
 package "Automation Service" {
 
 ' Сценарии
@@ -177,6 +179,24 @@ entity "Actions" {
   Operators ||--o{ Conditions
 ' Одна команда может использоваться во многих действиях
   DeviceCommands ||--o{ Actions
+}
+
+' TimescaleDB
+package "Telemetry Service" { 
+  ' Данные телеметрии
+entity "TelemetryData" {
+  ' Время события
+  * timestamp: timestamptz
+  ' Идентификатор устройства
+  * device_id: UUID
+  --
+  ' Измеренное значение
+    value: double ' **NOT NULL**
+  ' Тег для быстрой фильтрации (комната, где стоит датчик)
+    location: varchar
+  ' Тег для быстрой фильтрации (например, "temperature", "humidity")
+    attribute: varchar
+ }
 }
 
 @enduml

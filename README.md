@@ -103,13 +103,17 @@
 
 **Диаграмма кода (Code)**
 
-![Диаграмма кода To-Be](docs/diagrams/C4_Code_ToBe.puml.png)
+![Диаграмма кода To-Be](docs/diagrams/C4_Code_ToBe.png)
 
 [Исходный код диаграммы в формате PlantUML](docs/diagrams/C4_Code_ToBe.puml)
 
 # Задание 3. Разработка ER-диаграммы
 
 Добавьте сюда ER-диаграмму. Она должна отражать ключевые сущности системы, их атрибуты и тип связей между ними.
+
+![ER-диаграмма](docs/diagrams/ER_Diagram_CoreServices.png)
+
+[Исходный код диаграммы в формате PlantUML](docs/diagrams/ER_Diagram_CoreServices.puml)
 
 # Задание 4. Создание и документирование API
 
