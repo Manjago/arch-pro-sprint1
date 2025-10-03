@@ -1,0 +1,79 @@
+asyncapi: 2.6.0
+info:
+  title: Warm House Event-Driven API
+  version: 1.0.0
+  description: Асинхронное взаимодействие между микросервисами "Тёплого дома" через Kafka.
+
+servers:
+  production:
+    url: kafka-broker.warmhouse.tech:9092
+    protocol: kafka
+    description: Production Kafka broker
+
+channels:
+  telemetry.events.v1.devicestate.changed:
+    description: Канал для событий об изменении состояния устройств.
+    publish:
+      summary: Публикация события (Producer Telemetry Service).
+      operationId: publishDeviceStateChanged
+      message:
+        $ref: '#/components/messages/DeviceStateChanged'
+    subscribe:
+      summary: Получение события (Consumer Automation Service).
+      operationId: subscribeToDeviceStateChanged
+      message:
+        $ref: '#/components/messages/DeviceStateChanged'
+
+  device.commands.v1.execute:
+    description: Канал для команд управления устройствами.
+    publish:
+      summary: Публикация команды (Producer Automation Service).
+      operationId: publishExecuteDeviceCommand
+      message:
+        $ref: '#/components/messages/ExecuteDeviceCommand'
+    subscribe:
+      summary: Получение команды (Consumer Control Service).
+      operationId: subscribeToExecuteDeviceCommand
+      message:
+        $ref: '#/components/messages/ExecuteDeviceCommand'
+
+components:
+  messages:
+    DeviceStateChanged:
+      name: DeviceStateChanged
+      title: Событие об изменении состояния устройства
+      summary: Содержит информацию о новом значении атрибута устройства.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DeviceStateChangedPayload'
+
+    ExecuteDeviceCommand:
+      name: ExecuteDeviceCommand
+      title: Команда на выполнение действия устройством
+      summary: Automation Service отправляет команду Control Service для управления устройством.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ExecuteDeviceCommandPayload'
+
+  schemas:
+    DeviceStateChangedPayload:
+      type: object
+      required:
+        - eventId
+        - eventTime
+        - deviceId
+        - payload
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор события (UUID v7)
+          example: 0199ab3f-3fb7-706f-bc51-925b8e3733bc
+        eventTime:
+          type: string
+          format: date-time
+          description: Время события в формате ISO 8601 (UTC)
+          example: 2025-10-03T20:59:00.000Z
+        deviceId:
+          type: string
+          description: У
