@@ -39,6 +39,7 @@ services:
     depends_on:
       - postgres
       - temperature-api
+    command: ["/wait-for-it.sh", "postgres:5432", "--", "./smarthome"]    
     environment:
       - DATABASE_URL=postgres://user:${POSTGRES_PASSWORD}@postgres:5432/smarthome
       - TEMPERATURE_API_URL=http://temperature-api:8081
