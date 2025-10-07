@@ -1,4 +1,4 @@
-package io.github.manjago.devicemanagementservice;
+package io.github.manjago.devicemanagementservice.util;
 
 import com.google.gson.Gson;
 

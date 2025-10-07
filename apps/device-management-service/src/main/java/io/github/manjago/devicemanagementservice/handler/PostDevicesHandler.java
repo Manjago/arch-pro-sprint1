@@ -1,6 +1,10 @@
 
-package io.github.manjago.devicemanagementservice;
+package io.github.manjago.devicemanagementservice.handler;
 
+import io.github.manjago.devicemanagementservice.dto.DeviceRequest;
+import io.github.manjago.devicemanagementservice.dto.DeviceResponse;
+import io.github.manjago.devicemanagementservice.exception.ValidationException;
+import io.github.manjago.devicemanagementservice.util.JsonUtil;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -14,6 +18,13 @@ public class PostDevicesHandler implements Route {
     @Override
     public Object handle(Request req, Response res)  {
         DeviceRequest request = JsonUtil.fromJson(req.body(), DeviceRequest.class);
+
+        if (request.getDisplayName() == null || request.getDisplayName().isBlank()) {
+            throw new ValidationException("display_name is required");
+        }
+        if (request.getSerialNumber() == null || request.getSerialNumber().isBlank()) {
+            throw new ValidationException("serial_number is required");
+        }
 
         final DeviceResponse response = new DeviceResponse(
                 UuidCreator.getTimeOrderedEpoch().toString(), // UUID v7

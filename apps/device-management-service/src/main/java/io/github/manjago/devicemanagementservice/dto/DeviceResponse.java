@@ -1,4 +1,4 @@
-package io.github.manjago.devicemanagementservice;
+package io.github.manjago.devicemanagementservice.dto;
 
 import com.google.gson.annotations.SerializedName;
 
