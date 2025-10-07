@@ -46,6 +46,10 @@ public class DeviceResponse {
         this.deviceType = deviceType;
     }
 
+    public String getId() {
+        return id;
+    }
+
     @Override
     public String toString() {
         return "DeviceResponse{" + "id='" + id + '\'' + ", displayName='" + displayName + '\'' + ", serialNumber='" + serialNumber + '\'' + ", vendor='" + vendor + '\'' + ", status='" + status + '\'' + ", properties=" + properties + ", batteryLevel=" + batteryLevel + ", houseId='" + houseId + '\'' + ", deviceType=" + deviceType + '}';

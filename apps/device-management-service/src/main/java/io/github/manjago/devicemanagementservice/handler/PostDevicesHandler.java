@@ -4,6 +4,7 @@ package io.github.manjago.devicemanagementservice.handler;
 import io.github.manjago.devicemanagementservice.dto.DeviceRequest;
 import io.github.manjago.devicemanagementservice.dto.DeviceResponse;
 import io.github.manjago.devicemanagementservice.exception.ValidationException;
+import io.github.manjago.devicemanagementservice.service.DeviceService;
 import io.github.manjago.devicemanagementservice.util.JsonUtil;
 import spark.Request;
 import spark.Response;
@@ -14,6 +15,8 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import java.util.HashMap;
 
 public class PostDevicesHandler implements Route {
+
+    private final DeviceService deviceService = DeviceService.getInstance();
 
     @Override
     public Object handle(Request req, Response res)  {
@@ -37,6 +40,8 @@ public class PostDevicesHandler implements Route {
                 request.getHouseId(),
                 new DeviceResponse.DeviceType(1, request.getDeviceTypeName())
         );
+
+        deviceService.save(response);
 
         res.type("application/json");
         res.status(201);
