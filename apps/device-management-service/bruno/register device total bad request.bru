@@ -1,0 +1,23 @@
+meta {
+  name: register device total bad request
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:4567/devices
+  body: text
+  auth: inherit
+}
+
+body:json {
+  Hi
+}
+
+body:text {
+  Hi
+}
+
+settings {
+  encodeUrl: true
+}
