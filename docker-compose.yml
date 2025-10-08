@@ -31,6 +31,17 @@ services:
       - smarthome-network
     restart: unless-stopped
 
+  device-management-service:
+    build:
+      context: ./apps/device-management-service 
+      dockerfile: Dockerfile
+    container_name: device-management-service
+    ports:
+      - "4567:4567"
+    networks:
+      - smarthome-network
+    restart: unless-stopped
+
   app: 
     build:
       context: ./apps/smart_home
