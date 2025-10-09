@@ -6,6 +6,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
+import org.slf4j.LoggerFactory
 import java.util.Properties
 
 class KafkaProducerService(
@@ -13,6 +14,7 @@ class KafkaProducerService(
     private val topic: String = "telemetry-events"
 ) {
     private val producer: KafkaProducer<String, String>
+    private val logger = LoggerFactory.getLogger(KafkaProducerService::class.java)
 
     init {
         val props = Properties().apply {
@@ -28,10 +30,18 @@ class KafkaProducerService(
     fun sendEvent(event: KafkaEvent) {
         val json = objectMapper.writeValueAsString(event)
         val record = ProducerRecord(topic, event.deviceId, json)
-        producer.send(record)
+
+        producer.send(record) { metadata, exception ->
+            if (exception != null) {
+                logger.error("Failed to send event: eventId=${event.eventId}, deviceId=${event.deviceId}", exception)
+            } else {
+                logger.info("Event sent: eventId=${event.eventId}, deviceId=${event.deviceId}, topic=${metadata.topic()}, partition=${metadata.partition()}, offset=${metadata.offset()}")
+            }
+        }
     }
 
     fun close() {
+        logger.info("Closing Kafka producer")
         producer.close()
     }
 }
