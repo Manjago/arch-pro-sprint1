@@ -1,0 +1,69 @@
+@startuml C4_Code_AutomationEngine
+title Диаграмма классов (C4) для компонента "Rules Engine"
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+' Пример сценария: "Для пользователя user-123, в доме house-456, ЕСЛИ температура на датчике temp-sensor-bedroom < 20 И время суток между 22:00 и 06:00, ТО выполнить действие включить на устройстве heater-bedroom"
+' Для пользователя user-123, в доме house-456, 
+' ЕСЛИ температура на датчике temp-sensor-bedroom < 20
+' И время суток между 22:00 и 06:00
+' ТО выполнить действие включить на устройстве heater-bedroom"
+
+' Сценарий
+class Scenario {
+' Идентификатор сценария    
+  - scenarioId: UUID
+' Идентификатор пользователя (больше нам о пользователе ничего знать не надо)
+  - userId: UUID
+' Человекочитаемое наименование сценария
+  - name: String
+' Сценарий активен  
+  - isEnabled: boolean
+}
+
+' Триггер для запуска (изменение состояния устройства)
+class Trigger {    
+' На какое устройство реагируем     
+  - sourceDeviceId: UUID 
+' На какое его свойство? Например, "temperature"  
+  - attribute: DeviceAttribute
+}
+
+' Условие запуска
+class Condition {
+' Какое устройство смотрим
+  - sourceDeviceId: UUID 
+' Какое его свойство? Например, "temperature"  
+  - attribute: DeviceAttribute
+' (>, <, ==)
+  - operator: Operator
+' Свойство храним в строке, парсим в зависимости от attribute 
+  - value: String
+}
+
+class Action {
+' С каким устройством делаем
+  - targetDeviceId: UUID
+' Что именно делаем? Например, "turn on"  
+  - command: DeviceCommand
+' Дополнительные параметры, если нужны
+  - params: Map<String, String>
+}
+
+' Связи Агрегации 
+Scenario o-- "1" Trigger
+Scenario o-- "1..*" Condition
+Scenario o-- "1..*" Action
+
+' Сервисный класс
+class ScenarioEvaluator {
+' На вход — событие, на выход — список действий, которые нужно выполнить    
+  + evaluate(event, scenarios): List<Action>
+}
+
+' Evaluator использует модели для своей работы
+ScenarioEvaluator ..> Scenario
+
+@enduml

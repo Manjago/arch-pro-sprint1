@@ -1,0 +1,32 @@
+meta {
+  name: send device data
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:7070/telemetry
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "deviceId": "0199ca63-a074-7c9c-9f77-bedfde418de1",
+    "timestamp": "2025-10-08T19:45:00.000Z",
+    "measurements": [
+      {
+        "attribute": "temperature",
+        "value": 21.5
+      },
+      {
+        "attribute": "humidity",
+        "value": 45.2
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,302 @@
+openapi: 3.0.3
+info:
+  title: Automation Service API
+  description: API для управления сценариями автоматизации в системе "Тёплый дом".
+  version: 1.0.0
+
+servers:
+  - url: https://api.warmhouse.tech/v1 # Это пример, URL для API Gateway
+
+paths:
+  /scenarios:
+    post:
+      summary: Создать новый сценарий
+      description: Создает новый сценарий автоматизации для пользователя.
+      tags:
+        - Scenarios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenarioInput'
+      responses:
+        '201':
+          description: Сценарий успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioOutput'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+components:
+  schemas:
+    ScenarioInput:
+      type: object
+      required:
+        - name
+        - triggers
+        - conditions
+        - actions
+      properties:
+        name:
+          type: string
+          description: "Название сценария"
+          minLength: 1
+          maxLength: 200
+          example: "Включить отопление ночью, если холодно"
+        triggers:
+          type: array
+          description: "Триггеры, которые запускают проверку условий"
+          minItems: 1
+          items:
+            type: object
+            required:
+              - source_device_id
+              - device_attribute
+            properties:
+              source_device_id:
+                type: string
+                description: "UUID устройства-источника события"
+                example: "uuid-temp-sensor-bedroom-123"
+              device_attribute:
+                type: string
+                description: "Атрибут устройства для отслеживания"
+                example: "temperature"
+        conditions:
+          type: array
+          description: "Условия, которые должны выполниться для запуска действий"
+          items:
+            type: object
+            required:
+              - source_device_id
+              - device_attribute
+              - operator
+              - value
+            properties:
+              source_device_id:
+                type: string
+                description: "UUID устройства для проверки условия"
+                example: "uuid-temp-sensor-bedroom-123"
+              device_attribute:
+                type: string
+                description: "Атрибут устройства для проверки"
+                example: "temperature"
+              operator:
+                type: string
+                enum: 
+                  - LESS_THAN
+                  - GREATER_THAN
+                  - EQUALS
+                  - NOT_EQUALS
+                  - LESS_OR_EQUAL
+                  - GREATER_OR_EQUAL
+                description: "Оператор сравнения"
+                example: "LESS_THAN"
+              value:
+                type: string
+                description: "Значение для сравнения (строка для универсальности)"
+                example: "20"
+        actions:
+          type: array
+          description: "Действия, которые нужно выполнить при срабатывании"
+          minItems: 1
+          items:
+            type: object
+            required:
+              - target_device_id
+              - device_command
+            properties:
+              target_device_id:
+                type: string
+                description: "UUID целевого устройства"
+                example: "uuid-heater-bedroom-456"
+              device_command:
+                type: string
+                enum:
+                  - TURN_ON
+                  - TURN_OFF
+                  - SET_TEMPERATURE
+                  - SET_MODE
+                description: "Команда для устройства"
+                example: "TURN_ON"
+              parameters:
+                type: object
+                description: "Дополнительные параметры команды"
+                additionalProperties: true
+                example:
+                  mode: "comfort"
+
+    ScenarioOutput:
+      type: object
+      required:
+        - id
+        - user_id
+        - status
+        - createdAt
+        - name
+        - triggers
+        - conditions
+        - actions
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Уникальный идентификатор сценария (UUID v7)"
+          example: "0199a63b-8c38-765d-9058-5db7efa8c527"
+        user_id:
+          type: string
+          format: uuid
+          description: "Идентификатор пользователя (UUID v7)"
+          example: "0199a63c-83de-7d57-a426-d6017ee67179"
+        status:
+          type: string
+          enum:
+            - enabled
+            - disabled
+            - error
+          description: "Статус сценария"
+          example: "enabled"
+        createdAt:
+          type: string
+          format: date-time
+          description: "Дата и время создания сценария (ISO 8601 с timezone)"
+          example: "2025-10-02T21:44:00.000+03:00"
+        name:
+          type: string
+          description: "Название сценария"
+          example: "Включить отопление ночью, если холодно"
+        triggers:
+          type: array
+          description: "Триггеры сценария"
+          minItems: 1
+          items:
+            type: object
+            required:
+              - id
+              - source_device_id
+              - device_attribute
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: "Уникальный идентификатор триггера (UUID v7)"
+                example: "0199a63e-c9c9-7c83-93a5-9eb5588e30ba"
+              source_device_id:
+                type: string
+                description: "UUID устройства-источника"
+                example: "uuid-temp-sensor-bedroom-123"
+              device_attribute:
+                type: string
+                description: "Атрибут устройства для отслеживания"
+                example: "temperature"
+        conditions:
+          type: array
+          description: "Условия для выполнения действий"
+          items:
+            type: object
+            required:
+              - id
+              - source_device_id
+              - device_attribute
+              - operator
+              - value
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: "Уникальный идентификатор условия (UUID v7)"
+                example: "0199a63f-1924-7043-8d36-feaa46656d53"
+              source_device_id:
+                type: string
+                description: "UUID устройства для проверки"
+                example: "uuid-temp-sensor-bedroom-123"
+              device_attribute:
+                type: string
+                description: "Атрибут устройства"
+                example: "temperature"
+              operator:
+                type: string
+                enum:
+                  - LESS_THAN
+                  - GREATER_THAN
+                  - EQUALS
+                  - NOT_EQUALS
+                  - LESS_OR_EQUAL
+                  - GREATER_OR_EQUAL
+                description: "Оператор сравнения"
+                example: "LESS_THAN"
+              value:
+                type: string
+                description: "Значение для сравнения"
+                example: "20"
+        actions:
+          type: array
+          description: "Действия для выполнения"
+          minItems: 1
+          items:
+            type: object
+            required:
+              - id
+              - target_device_id
+              - device_command
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: "Уникальный идентификатор действия (UUID v7)"
+                example: "0199a63f-5eab-74e1-a7ab-0052fd1039a6"
+              target_device_id:
+                type: string
+                description: "UUID целевого устройства"
+                example: "uuid-heater-bedroom-456"
+              device_command:
+                type: string
+                enum:
+                  - TURN_ON
+                  - TURN_OFF
+                  - SET_TEMPERATURE
+                  - SET_MODE
+                description: "Команда для выполнения"
+                example: "TURN_ON"
+              parameters:
+                type: object
+                description: "Параметры команды"
+                additionalProperties: true
+                example:
+                  mode: "comfort"      
+
+    # --- ЭТУ СХЕМУ ДЕЛАЕМ ПО RFC 7807 ---
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: "A URI reference [RFC3986] that identifies the problem type."
+          default: "about:blank"
+        title:
+          type: string
+          description: "A short, human-readable summary of the problem type."
+        status:
+          type: integer
+          description: "The HTTP status code generated by the origin server for this occurrence of the problem."
+          format: int32
+        detail:
+          type: string
+          description: "A human-readable explanation specific to this occurrence of the problem."
+        instance:
+          type: string
+          format: uri
+          description: "A URI reference that identifies the specific occurrence of the problem."
