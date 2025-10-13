@@ -1,0 +1,24 @@
+meta {
+  name: register device bad request
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:4567/devices
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "serial_number": "SN-XYZ-98765",
+    "vendor": "WarmHouse Partners",
+    "house_id": "uuid-house-123-abc",
+    "device_type_name": "temperature_sensor" 
+  }
+}
+
+settings {
+  encodeUrl: true
+}

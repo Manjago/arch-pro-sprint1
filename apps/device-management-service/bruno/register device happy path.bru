@@ -1,0 +1,25 @@
+meta {
+  name: register device happy path
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:4567/devices
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "display_name": "Датчик температуры в спальне",
+    "serial_number": "SN-XYZ-98765",
+    "vendor": "WarmHouse Partners",
+    "house_id": "uuid-house-123-abc",
+    "device_type_name": "temperature_sensor" 
+  }
+}
+
+settings {
+  encodeUrl: true
+}

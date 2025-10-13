@@ -1,0 +1,212 @@
+@startuml ER_Diagram_CoreServices
+
+title ER-диаграмма для ключевых сервисов
+
+' PostgreSQL
+package "Registry Service" {
+
+' Пользователи
+entity "Users" {
+  ' Уникальный идентификатор, синхронизируется с Users Service
+  * id: UUID <<PK>>
+  --
+  ' Отображаемое имя, используется в интерфейсах поддержки
+  display_name: varchar ' **NOT NULL**
+}
+
+' Дома
+entity "Houses" {
+  ' Уникальный идентификатор дома
+  * id: UUID <<PK>>
+  --
+  ' Отображаемое имя (например, "Дача")
+    display_name: varchar ' **NOT NULL**
+}
+
+' Пользователи - Дома (многие ко многим)
+  entity "User_Houses" {
+    ' Составной первичный ключ и внешние ключи
+    * # user_id: UUID <<FK>>
+    * # house_id: UUID <<FK>>
+    --
+    ' Роль пользователя в этом доме
+    role: varchar ' **NOT NULL** (OWNER, RESIDENT, GUEST)
+  }
+
+' Устройства
+entity "Devices" {
+  ' Уникальный идентификатор устройства
+    * id: UUID <<PK>>
+    --
+  ' Отображаемое имя (например, "Нагреватель в спальне")
+    display_name: varchar ' **NOT NULL**
+  ' Серийный номер производителя ' **NOT NULL**, noname устройства без серийного номера не подключаем
+    serial_number: varchar
+  ' Вендор (по хорошему справочник, но упростим)
+    vendor: varchar
+  ' Статус (включен, выключен, поломался)
+    status: varchar ' **NOT NULL** (online, offline, error)
+  ' Дополнительные свойства
+    properties: jsonb
+  ' Уроверь батареи, в процентах
+    battery_level: integer
+  ' Внешний ключ на дом
+    # house_id: UUID <<FK>>
+  ' Внешний ключ на тип устройства
+    # device_type_id: integer <<FK>>
+  }
+
+' Типы устройств
+entity "DeviceTypes" {
+  ' Уникальный идентификатор типа устройства
+    * id: integer <<PK>>
+    --
+  ' Имя 
+    name: varchar ' **NOT NULL** ("Датчик температуры", "Умная розетка")
+  ' Необязательное описание
+    description: text
+  }
+
+
+  ' У одного пользователя может быть доступ ко многим домам
+  Users ||--|{ User_Houses
+  ' У одного дома может быть много пользователей
+  Houses ||--|{ User_Houses
+' В доме может не быть устройств (ил ибыть много)
+  Houses ||--o{ Devices
+' Мы можем знать о типе устройств, но их пока нет
+  DeviceTypes ||--o{ Devices
+}
+
+' PostgreSQL
+package "Automation Service" {
+
+' Сценарии
+entity "Scenarios" {
+' Идентификатор сценария    
+  * id: UUID <<PK>>
+    --
+' Идентификатор пользователя, синхронизируется с Users Service
+  user_id: UUID ' **NOT NULL**
+' Человекочитаемое наименование сценария
+  name: varchar ' **NOT NULL**
+' Сценарий активен или приостановлен (enum более расширяемо, чем просто ищщдуфт)
+  status: ' **NOT NULL** (enabled, disabled)
+}
+
+' Атрибуты устройств (температура, влажность)
+entity "DeviceAttributes" {
+  ' Уникальный идентификатор атрибута
+    * id: integer <<PK>>
+    --
+  ' Имя 
+    name: varchar '  **NOT NULL** ("Температура", "Влажность")
+  ' Необязательное описание
+    description: text
+  }
+
+
+' Триггеры (на что реагируем)
+entity "Triggers" {
+' Идентификатор триггера
+  * id: UUID <<PK>>
+  --
+' На какое устройство реагируем (не внешний ключ, таблицы устройств тут не будет, будет ходить за метаданными чере API)    
+    source_device_id: UUID ' **NOT NULL**
+' На какое его свойство? Например, "Температура"  
+  # device_attribute_id: integer <<FK>>
+' Триггер связан со сценарием
+  # scenario_id: UUID <<FK>>
+}
+
+' Операторы сравнения 
+entity "Operators" {
+  ' Уникальный идентификатор атрибута
+    * id: integer <<PK>>
+    --
+  ' Имя 
+    * name: varchar ' **NOT NULL** ("<", "<=", "==", ...)
+  ' Необязательное описание
+    description: text
+  }
+
+
+' Условия запуска
+entity "Conditions" {
+  ' Идентификатор условия
+  * id: UUID <<PK>>
+  --
+  ' Устройство, состояние которого проверяем
+    source_device_id: UUID ' **NOT NULL**
+  ' Проверяемое свойство (например, "Температура")
+  # device_attribute_id: integer <<FK>>
+  ' Оператор сравнения (например, "<")
+  # operator_id: integer <<FK>>
+  ' Целевое значение, с которым сравниваем
+  value: varchar ' **NOT NULL**
+  ' Условие связано со сценарием
+  # scenario_id: UUID <<FK>>
+ }
+
+' Команды для устройств
+entity "DeviceCommands" {
+  ' Уникальный идентификатор атрибута
+    * id: integer <<PK>>
+    --
+  ' Имя 
+    name: varchar ' **NOT NULL** ("turn on", "turn off", "reboot", ...)
+  ' Необязательное описание
+    description: text
+  }
+
+
+' Действия
+entity "Actions" {
+  ' Идентификатор действия
+  * id: UUID <<PK>>
+  --
+  ' Устройство, с которым производим действие
+    target_device_id: UUID ' **NOT NULL**
+  ' Что именно делаем (например, включаем)
+  # device_command_id: integer <<FK>>
+  ' Дополнителные параметры, если нужны
+  parameters: jsonb
+  ' Действие связано со сценарием
+  # scenario_id: UUID <<FK>>
+ }
+
+  ' Один атрибут может использоваться во многих триггерах
+  DeviceAttributes ||--o{ Triggers
+  ' Один атрибут может использоваться во многих условиях
+  DeviceAttributes ||--o{ Conditions
+' У одного сценария может быть ноль или несколько триггеров
+  Scenarios ||--o{ Triggers
+' У одного сценария может быть ноль или несколько условий
+  Scenarios ||--o{ Conditions
+' У одного сценария может быть ноль или несколько действий
+  Scenarios ||--o{ Actions
+' Один оператор может использоваться во многих условиях
+  Operators ||--o{ Conditions
+' Одна команда может использоваться во многих действиях
+  DeviceCommands ||--o{ Actions
+}
+
+' TimescaleDB
+package "Telemetry Service" { 
+  ' Данные телеметрии
+entity "TelemetryData" {
+  ' Время события
+  * timestamp: timestamptz
+  ' Идентификатор устройства
+  * device_id: UUID
+  --
+  ' Измеренное значение
+    value: double ' **NOT NULL**
+  ' Тег для быстрой фильтрации (комната, где стоит датчик)
+    location: varchar
+  ' Тег для быстрой фильтрации (например, "temperature", "humidity")
+    attribute: varchar
+ }
+}
+
+@enduml

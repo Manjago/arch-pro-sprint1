@@ -19,8 +19,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o smarthome
 # Runtime stage
 FROM alpine:latest
 
-# Install necessary runtime dependencies
-RUN apk --no-cache add ca-certificates tzdata
+# Install necessary runtime dependencies AND bash (for wait-for-it.sh)
+RUN apk --no-cache add ca-certificates tzdata bash
 
 # Set working directory
 WORKDIR /app
@@ -28,8 +28,13 @@ WORKDIR /app
 # Copy the binary from the builder stage
 COPY --from=builder /app/smarthome .
 
+# Copy wait-for-it.sh script and make it executable
+COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Command to run the application
-CMD ["./smarthome"]
+# Command to run the application is now defined in docker-compose.yml
+# Leaving this commented out or removing it entirely
+# CMD ["./smarthome"]
